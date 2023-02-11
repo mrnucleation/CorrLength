@@ -11,7 +11,7 @@ class CorrLengthModel:
         self.gamma = 1.0
         self.nu = 1.0
 
-    def __call__(self, Q):
+    def predict(self, Q):
         #Fit the model to the data
         X = Q * self.e0_func
         a = self.Iq0_func()
