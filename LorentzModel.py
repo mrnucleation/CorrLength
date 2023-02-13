@@ -1,6 +1,6 @@
-#import numpy as np
-import jax.numpy as np
-import jax
+import numpy as np
+#import jax.numpy as np
+#import jax
 import optax
 
 def rmse(Y_model, Y_target):
@@ -10,7 +10,7 @@ def rmse(Y_model, Y_target):
     return err
 #A function which takes a set of X and Y data and fits a linear regression model to it.
 class CorrLengthModel:
-    def __init__(self, temperature=350.0):
+    def __init__(self, Q, Y, temperature=350.0,):
         self.w_n = 0.0
         self.I0 = 1.0
         self.e0 = 1.0
@@ -20,6 +20,12 @@ class CorrLengthModel:
         self.nu = 1.0
         self.parameters = [self.w_n, self.Tsp, self.gamma, self.nu, self.I0, self.e0]
         self.parameters = np.array(self.parameters)
+        self.Q = Q
+        self.Y = Y
+
+    def __call__(self, parameters):
+        self.set_weights(parameters)
+        return self.computeerror(self.Q, self.Y)
 
     def fit(self, Q, Y, lrate = 1e-6):
         optimizer = optax.adam(lrate)
@@ -34,6 +40,8 @@ class CorrLengthModel:
     def computeerror(self, Q, Y):
         Y_model = self.predict(Q)
         err = rmse(Y, Y_model)
+        if np.isnan(err).any():
+            err = 1e300
         print(err)
         return err
 
@@ -61,4 +69,5 @@ class CorrLengthModel:
         return self.parameters
 
     def set_weights(self, weights):
-        self.w_n, self.Tsp, self.gamma, self.nu, self.I0, self.e0 = tuple(weights)
+        self.parameters = weights
+#        self.w_n, self.Tsp, self.gamma, self.nu, self.I0, self.e0 = tuple(weights)
