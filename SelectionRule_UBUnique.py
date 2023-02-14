@@ -56,8 +56,8 @@ def UCT_Unique_Score(node, uniqval, exploreconstant, doprint=False):
             if i not in usedlist:
                 exploitweight = min(exploitweight, scalefunc(energy))
     exploitweight = exploitweight/cnt
-    if exploitweight > 1e9:
-        exploitweight = 1e9
+#    if exploitweight > 1e50:
+#        exploitweight = 1e9
     explore = 0.0
     try:
         explore = uniqval*sqrt(log(parvisits)/visits)

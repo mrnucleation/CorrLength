@@ -25,8 +25,12 @@ class CorrLengthModel:
 
     def __call__(self, parameters):
         self.set_weights(parameters)
-        return self.computeerror(self.Q, self.Y)
+        score = self.computeerror(self.Q, self.Y)
+        with open("dumpfile.dat", "a") as outfile:
+            outstr = ' '.join([str(x) for x in parameters])
+            outfile.write('%s | %s\n'%(outstr, score))
 
+        return score
     def fit(self, Q, Y, lrate = 1e-6):
         optimizer = optax.adam(lrate)
         opt_state = optimizer.init(self.parameters)

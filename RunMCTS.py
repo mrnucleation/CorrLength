@@ -38,14 +38,14 @@ print(data)
 print(data.shape)
 Q, Y = data[:,0], data[:,1]
 
-Y /= Y.max()
+Y *= 1000.0*Y.max()
 model = CorrLengthModel(Q,Y,temperature=450.0)
 
 depthlimit = 900
 startpar = model.get_weights()
 nParameters = len(startpar)
-ubounds = [10.0, 600.0, 10.0, 10.0, 10.0, 100.0 ]
-lbounds = [0.0 , 300.0,  0.0,  0.0,  0.0,   0.0 ]
+ubounds = [2.0,  800.0,   10.0,   10.0,   10.0, 50.0 ]
+lbounds = [0.0,  450.1,  1e-7,  1e-7,  1e-2,   1e-2 ]
 startset = startpar
 
 depthscale = [10.0, 5.0, 0.8, 0.4, 0.2]
@@ -66,7 +66,8 @@ tree = Tree(seeddata=indata,
         headexpansion=5,
         verbose=True)
 tree.setconstant(0e0)
-expandhead_radiallatin(15, len(ubounds), tree, 0.5)
+expandhead_latin(5, tree, lbounds, ubounds)
+#expandhead_radiallatin(15, len(ubounds), tree, 1e-5)
 tree.expandfromdata(newdata=indata)
 lastmin = 1e300
 lastloop = 0
@@ -77,7 +78,7 @@ for iLoop in range(1,500):
     for i in range(5):
         tree.playexpand(nExpansions=1, depthlimit=depthlimit)
         tree.simulate(nSimulations=1)
-        tree.autoscaleconstant(scaleboost=0.5)
+        tree.autoscaleconstant(scaleboost=2.5)
     minval = tree.getbestscore()
     if minval < lastmin:
         minval = min(lastmin, minval)
