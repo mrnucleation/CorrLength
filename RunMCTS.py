@@ -4,12 +4,14 @@ from MCTSOpt import Tree
 #from ParameterObject import ParameterData as LogisticSearch
 from LogisticSearch import LogisticSearch
 from SelectionRule_UBUnique import UBUnique as UBEnergy 
-from LorentzModel import CorrLengthModel
+
+from GetModel import getmodel
 
 import numpy as np
 from datetime import datetime
 from random import random, seed
 from copy import deepcopy
+from glob import glob
 seed(datetime.now())
 
 from init_latin_hypercube_sampling import init_latin_hypercube_sampling
@@ -31,24 +33,45 @@ def expandhead_radiallatin(npoints, ndim, tree, rmax):
         nodedata = indata.newdataobject()
         nodedata.setstructure(x)
         tree.expandfromdata(newdata=nodedata)
+'''
+filelist = sorted(glob("*radialplot_L*"))
+print(filelist)
+Q = []
+Y = []
+T = []
+filetemp = [350.0, 400.0, 450.0, 500.0]
+for t, infile in zip(filetemp, filelist):
+    print(infile)
+    data = np.loadtxt(infile)
+    Q.append(data[1:7,0])
+    y = data[1:7,1]
+    y /= y.max()
+    Y.append(y)
+    T.append([t for x in range(y.shape[0])])
+
+Q = np.concatenate(Q)
+Y = np.concatenate(Y)
+T = np.concatenate(T)
+print(Q.shape)
+print(Y.shape)
+print(T.shape)
 
 
-data = np.loadtxt("radialplot_Avg_xy.dump")
-print(data)
-print(data.shape)
-Q, Y = data[:,0], data[:,1]
+Y /= Y.max()
+model = CorrLengthModel(Q,Y,T)
 
-Y *= 1000.0*Y.max()
-model = CorrLengthModel(Q,Y,temperature=450.0)
+'''
+
+model = getmodel()
 
 depthlimit = 900
 startpar = model.get_weights()
 nParameters = len(startpar)
-ubounds = [2.0,  800.0,   10.0,   10.0,   10.0, 50.0 ]
-lbounds = [0.0,  450.1,  1e-7,  1e-7,  1e-2,   1e-2 ]
+ubounds = [0.05,  750.0,   2.0,   2.0,  1000000.0, 1000000.0 ]
+lbounds = [-0.05,  50.1,  0.0,  0.0,  1e-5,   1e-5 ]
 startset = startpar
 
-depthscale = [10.0, 5.0, 0.8, 0.4, 0.2]
+depthscale = [10.0, 5.0, 0.8, 0.4, 0.2, 0.05, 0.000001]
 #depthscale = [nParameters*x for x in depthscale]
 
 ubounds = np.array(ubounds)
@@ -66,7 +89,7 @@ tree = Tree(seeddata=indata,
         headexpansion=5,
         verbose=True)
 tree.setconstant(0e0)
-expandhead_latin(5, tree, lbounds, ubounds)
+expandhead_latin(35, tree, lbounds, ubounds)
 #expandhead_radiallatin(15, len(ubounds), tree, 1e-5)
 tree.expandfromdata(newdata=indata)
 lastmin = 1e300
@@ -78,7 +101,7 @@ for iLoop in range(1,500):
     for i in range(5):
         tree.playexpand(nExpansions=1, depthlimit=depthlimit)
         tree.simulate(nSimulations=1)
-        tree.autoscaleconstant(scaleboost=2.5)
+        tree.autoscaleconstant(scaleboost=0.5)
     minval = tree.getbestscore()
     if minval < lastmin:
         minval = min(lastmin, minval)
